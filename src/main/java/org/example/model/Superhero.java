@@ -14,4 +14,8 @@ public class Superhero extends PanacheEntity {
         this.name = name;
         this.identity = identity;
     }
+
+    public static Superhero FindByIdentity(String identity) {
+        return find("identity", identity).firstResult();
+    }
 }
