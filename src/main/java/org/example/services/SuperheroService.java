@@ -4,6 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.example.model.Superhero;
 import org.example.services.restclient.SuperheroClientService;
+import org.jboss.logging.Logger;
 
 import java.util.List;
 
@@ -13,6 +14,10 @@ public class SuperheroService {
     SuperheroClientService superheroClientService;
     @Inject
     SuperheroMapper superheroMapper;
+    @Inject
+    PersistenceDataService<Superhero> persistenceDataService;
+    @Inject
+    Logger log;
 
     public List<Superhero> GetAll() {
         var data = superheroClientService.GetAll();
@@ -20,7 +25,18 @@ public class SuperheroService {
     }
 
     public Superhero Get(int id) {
-        var superFound = superheroClientService.GetById(id);
-        return superFound.map(superheroMapper::toSuperheroEntity).orElse(null);
+        Superhero superheroFound;
+
+        superheroFound = persistenceDataService.get(String.valueOf(id));
+        if(superheroFound == null) {
+            log.infof("No super found in PersistenceData with id %s. Getting data from Rest Client", id);
+
+            superheroFound = superheroClientService.GetById(id).map(superheroMapper::toSuperheroEntity).orElse(null);
+            if(superheroFound != null) {
+                persistenceDataService.set(superheroFound);
+            }
+        }
+
+        return superheroFound;
     }
 }

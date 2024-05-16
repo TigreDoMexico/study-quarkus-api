@@ -19,6 +19,11 @@ public class SuperheroResource {
     @GET
     @Path("/get/{id}")
     public Response getById(@PathParam("id") int id) {
-        return Response.ok(service.Get(id)).build();
+        var superReturned = service.Get(id);
+
+        if(superReturned == null) {
+            return Response.status(404).build();
+        }
+        return Response.ok(superReturned).build();
     }
 }
