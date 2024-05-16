@@ -19,8 +19,10 @@ services:
       - redis_data:/data
     networks:
       - superfight-network
+
 networks:
   superfight-network:
+
 volumes:
   redis_data:
     driver: local

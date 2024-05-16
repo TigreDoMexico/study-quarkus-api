@@ -1,5 +1,6 @@
 package org.example.resource;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -12,18 +13,15 @@ public class SuperheroResource {
 
     @GET
     @Path("/list")
-    public Response list() {
-        return Response.ok(service.GetAll()).build();
+    public Uni<Response> list() {
+        return service.GetAllAsync().onItem().transform(data -> Response.ok(data).build());
     }
 
     @GET
     @Path("/get/{id}")
-    public Response getById(@PathParam("id") int id) {
-        var superReturned = service.Get(id);
-
-        if(superReturned == null) {
-            return Response.status(404).build();
-        }
-        return Response.ok(superReturned).build();
+    public Uni<Response> getById(@PathParam("id") int id) {
+        return service.GetAsync(id)
+                //.onItem().ifNull().fail().replaceWith(() -> Response.status(Response.Status.NOT_FOUND).build())
+                .onItem().transform(data -> Response.ok(data).build());
     }
 }

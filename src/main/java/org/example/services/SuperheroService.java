@@ -1,5 +1,6 @@
 package org.example.services;
 
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.example.model.Superhero;
@@ -19,24 +20,24 @@ public class SuperheroService {
     @Inject
     Logger log;
 
-    public List<Superhero> GetAll() {
-        var data = superheroClientService.GetAll();
-        return data.map(superheroMapper::toSuperheroEntityList).orElse(null);
+    public Uni<List<Superhero>> GetAllAsync() {
+        return superheroClientService.GetAllAsync()
+                .onItem()
+                .transform(returnData -> returnData.map(superheroMapper::toSuperheroEntityList).orElse(null));
     }
 
-    public Superhero Get(int id) {
-        Superhero superheroFound;
-
-        superheroFound = persistenceDataService.get(String.valueOf(id));
-        if(superheroFound == null) {
-            log.infof("No super found in PersistenceData with id %s. Getting data from Rest Client", id);
-
-            superheroFound = superheroClientService.GetById(id).map(superheroMapper::toSuperheroEntity).orElse(null);
-            if(superheroFound != null) {
-                persistenceDataService.set(superheroFound);
-            }
-        }
-
-        return superheroFound;
+    public Uni<Superhero> GetAsync(int id) {
+        return persistenceDataService.get(String.valueOf(id))
+                .onItem().ifNull().switchTo(() -> {
+                    log.infof("No super found in PersistenceData with id %s. Getting data from Rest Client", id);
+                    return superheroClientService.GetByIdAsync(id).onItem()
+                            .transform(returnData -> returnData.map(superheroMapper::toSuperheroEntity)
+                                    .orElse(null))
+                            .call(superhero -> {
+                                if(superhero != null)
+                                    persistenceDataService.set(superhero);
+                                return Uni.createFrom().item(superhero);
+                            });
+                });
     }
 }

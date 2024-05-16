@@ -1,7 +1,11 @@
 package org.example.persistence;
 
+import io.quarkus.redis.datasource.ReactiveRedisCommands;
+import io.quarkus.redis.datasource.ReactiveRedisDataSource;
 import io.quarkus.redis.datasource.RedisDataSource;
+import io.quarkus.redis.datasource.value.ReactiveValueCommands;
 import io.quarkus.redis.datasource.value.ValueCommands;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.example.model.Superhero;
@@ -10,16 +14,16 @@ import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class SuperheroPersistenceDataService extends PersistenceDataService<Superhero> {
-    private final ValueCommands<String, Superhero> countCommand;
+    private final ReactiveValueCommands<String, Superhero> countCommand;
     @Inject
     Logger log;
 
-    public SuperheroPersistenceDataService(RedisDataSource dataSource) {
+    public SuperheroPersistenceDataService(ReactiveRedisDataSource dataSource) {
         this.countCommand = dataSource.value(getType());
     }
 
     @Override
-    public Superhero get(String key) {
+    public Uni<Superhero> get(String key) {
         var realKey = generateKey(key);
         log.infof("Getting Redis data from key %s", realKey);
 
@@ -27,11 +31,11 @@ public class SuperheroPersistenceDataService extends PersistenceDataService<Supe
     }
 
     @Override
-    public void set(Superhero data) {
+    public Uni<Void> set(Superhero data) {
         var key = generateKey(data.id.toString());
         log.infof("Setting Redis data with key %s", key);
 
-        countCommand.set(key,data);
+        return countCommand.set(key,data);
     }
 
     private String generateKey(String id) {

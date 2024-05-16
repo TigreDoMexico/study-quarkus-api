@@ -6,13 +6,14 @@ import jakarta.ws.rs.QueryParam;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import java.util.Set;
+import java.util.concurrent.CompletionStage;
 
 @Path("/superheroes")
 @RegisterRestClient(configKey="superheroes-api")
 public interface ISuperheroClientService {
     @GET
-    Set<SuperheroData> getById(@QueryParam("id") int id);
+    CompletionStage<Set<SuperheroData>> getByIdAsync(@QueryParam("id") int id);
 
     @GET
-    Set<SuperheroData> getAll();
+    CompletionStage<Set<SuperheroData>> getAllAsync();
 }
