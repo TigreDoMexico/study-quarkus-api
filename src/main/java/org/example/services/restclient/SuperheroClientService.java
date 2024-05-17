@@ -19,9 +19,8 @@ public class SuperheroClientService {
 
     public Uni<Optional<SuperheroData>> GetByIdAsync(int id) {
         try {
-            return Uni.createFrom()
-                    .completionStage(superheroClientService.getByIdAsync(id))
-                    .onItem().transformToUni(data -> {
+            return Uni.createFrom().completionStage(superheroClientService.getByIdAsync(id))
+                    .flatMap(data -> {
                         if (data.isEmpty()) {
                             log.infof("No data return from Superhero Rest Client with Id %d", id);
                             return Uni.createFrom().item(Optional.empty());
@@ -37,9 +36,8 @@ public class SuperheroClientService {
 
     public Uni<Optional<List<SuperheroData>>> GetAllAsync() {
         try {
-            return Uni.createFrom()
-                    .completionStage(superheroClientService.getAllAsync())
-                    .onItem().transformToUni(data -> {
+            return Uni.createFrom().completionStage(superheroClientService.getAllAsync())
+                    .flatMap(data -> {
                         if (data.isEmpty()) {
                             log.info("No data return from Superhero Rest Client");
                             return Uni.createFrom().item(Optional.empty());

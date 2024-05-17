@@ -14,14 +14,16 @@ public class SuperheroResource {
     @GET
     @Path("/list")
     public Uni<Response> list() {
-        return service.GetAllAsync().onItem().transform(data -> Response.ok(data).build());
+        return service.GetAllAsync().map(data -> Response.ok(data).build());
     }
 
     @GET
     @Path("/get/{id}")
     public Uni<Response> getById(@PathParam("id") int id) {
-        return service.GetAsync(id)
-                //.onItem().ifNull().fail().replaceWith(() -> Response.status(Response.Status.NOT_FOUND).build())
-                .onItem().transform(data -> Response.ok(data).build());
+        return service.GetAsync(id).map(data -> {
+            if(data == null)
+                return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.ok(data).build();
+            });
     }
 }
