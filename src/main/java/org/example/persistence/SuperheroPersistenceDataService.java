@@ -1,10 +1,7 @@
 package org.example.persistence;
 
-import io.quarkus.redis.datasource.ReactiveRedisCommands;
 import io.quarkus.redis.datasource.ReactiveRedisDataSource;
-import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.redis.datasource.value.ReactiveValueCommands;
-import io.quarkus.redis.datasource.value.ValueCommands;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -15,9 +12,11 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class SuperheroPersistenceDataService extends PersistenceDataService<Superhero> {
     private final ReactiveValueCommands<String, Superhero> countCommand;
+
     @Inject
     Logger log;
 
+    @Inject
     public SuperheroPersistenceDataService(ReactiveRedisDataSource dataSource) {
         this.countCommand = dataSource.value(getType());
     }
